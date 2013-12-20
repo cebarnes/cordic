@@ -1,0 +1,8 @@
+{C:/Users/cbarnes/Documents/Semester 5/Comparch/Final_Clean/cordic_tb.v} {1 {vlog -work work {C:/Users/cbarnes/Documents/Semester 5/Comparch/Final_Clean/cordic_tb.v}
+Model Technology ModelSim PE Student Edition vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module CORDIC_TESTBENCH
+
+Top level modules:
+	CORDIC_TESTBENCH
+
+} {} {}}
