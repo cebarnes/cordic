@@ -2,12 +2,13 @@
 
 //Claire Barnes
 
-module CORDIC(clock, cosine, sine, x_start, y_start, angle);
+module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
 
   parameter width = 16;
 
   // Inputs
   input clock;
+  input nreset;
   input signed [width-1:0] x_start,y_start; 
   input signed [31:0] angle;
 
@@ -58,7 +59,12 @@ module CORDIC(clock, cosine, sine, x_start, y_start, angle);
   wire [1:0] quadrant;
   assign quadrant = angle[31:30];
 
-  always @(posedge clock)
+  always @(posedge clock, negedge nreset)
+  if (!nreset) begin
+    x[0] <= 0;
+    y[0] <= 0;
+    z[0] <= 0;
+  end else
   begin // make sure the rotation angle is in the -pi/2 to pi/2 range
     case(quadrant)
       2'b00,
@@ -101,7 +107,12 @@ module CORDIC(clock, cosine, sine, x_start, y_start, angle);
     //the sign of the current rotation angle
     assign z_sign = z[i][31];
 
-    always @(posedge clock)
+    always @(posedge clock, negedge nreset)
+    if (!nreset) begin
+      x[i+1] <= 0;
+      y[i+1] <= 0;
+      z[i+1] <= 0;
+    end else
     begin
       // add/subtract shifted data
       x[i+1] <= z_sign ? x[i] + y_shr : x[i] - y_shr;

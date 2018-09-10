@@ -11,6 +11,9 @@ module CORDIC_TESTBENCH;
   reg [31:0] angle;
   reg clk;
   reg signed [63:0] i;
+  reg nreset;
+  
+  integer counter;
 
   wire [width-1:0] COSout, SINout;
 
@@ -22,19 +25,16 @@ module CORDIC_TESTBENCH;
     angle = 'b00110101010101010101010101010101;
     Xin = An;     // Xout = 32000*cos(angle)
     Yin = 0;      // Yout = 32000*sin(angle)
-
-    //set clock
-    clk = 'b0;
-    forever
-    begin
-      #5 clk = !clk;
-    end
+    
+    counter = 0;
+    nreset = 0;
+   
 
     #50
-
+    nreset = 1;
     // Test 1
-    #1000                                           
-    angle = 'b00100000000000000000000000000000;    // example: 45 deg = 45/360 * 2^32 = 32'b00100000000000000000000000000000 = 45.000 degrees -> atan(2^0)
+    //#1000                                           
+    //angle = 'b00100000000000000000000000000000;    // example: 45 deg = 45/360 * 2^32 = 32'b00100000000000000000000000000000 = 45.000 degrees -> atan(2^0)
 
     // Test 2
     // #1500
@@ -42,11 +42,18 @@ module CORDIC_TESTBENCH;
 
     // Test 3
     // #10000
-    // angle = 'b01000000000000000000000000000000; // 90 deg
+    angle = 'b00000000000000000000000000000000; // 0 deg
 
     // Test 4
     // #10000
     // angle = 'b00110101010101010101010101010101; // 75 deg
+    
+     //set clock
+    clk = 'b0;
+    forever
+    begin
+      #5 clk = !clk;
+    end
 
    #1000
    $write("Simulation has finished");
@@ -54,11 +61,17 @@ module CORDIC_TESTBENCH;
 
   end
 
-  CORDIC TEST_RUN(clk, COSout, SINout, Xin, Yin, angle);
+  CORDIC TEST_RUN(nreset, clk, COSout, SINout, Xin, Yin, angle);
 
-  // Monitor the output
-  initial
-  $monitor($time, , COSout, , SINout, , angle);
+// Monitor the output
+always @(posedge clk) begin
+  $monitor(counter, , COSout, , SINout, , angle);
+
+  counter++;
+  angle = angle + 'b0000000_01000000_00000000_00000000;
+  if (counter == 1000) $finish;
+
+end
 
 endmodule
 
