@@ -1,8 +1,8 @@
 //CORDIC implementation for sine and cosine for Final Project 
-
+`timescale 1ns/1ps
 //Claire Barnes
 
-module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
+module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle, angleout);
 
   parameter width = 16;
 
@@ -14,6 +14,7 @@ module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
 
   // Outputs
   output signed  [width-1:0] sine, cosine;
+  output signed  [31:0] angleout;
 
   // Generate table of atan values
   wire signed [31:0] atan_table [0:30];
@@ -53,6 +54,7 @@ module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
   reg signed [width:0] x [0:width-1];
   reg signed [width:0] y [0:width-1];
   reg signed    [31:0] z [0:width-1];
+  reg signed    [31:0] a [0:width-1];
 
 
   // make sure rotation angle is in -pi/2 to pi/2 range
@@ -64,6 +66,7 @@ module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
     x[0] <= 0;
     y[0] <= 0;
     z[0] <= 0;
+    a[0] <= 0;
   end else
   begin // make sure the rotation angle is in the -pi/2 to pi/2 range
     case(quadrant)
@@ -79,16 +82,19 @@ module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
       begin
         x[0] <= -y_start;
         y[0] <= x_start;
-        z[0] <= {2'b00,angle[29:0]}; // subtract pi/2 for angle in this quadrant
+        //z[0] <= {2'b00,angle[29:0]}; // subtract pi/2 for angle in this quadrant
+        z[0] <= angle - 32'b01000000_00000000_00000000_00000000;
       end
 
       2'b10:
       begin
         x[0] <= y_start;
         y[0] <= -x_start;
-        z[0] <= {2'b11,angle[29:0]}; // add pi/2 to angles in this quadrant
+        //z[0] <= {2'b11,angle[29:0]}; // add pi/2 to angles in this quadrant
+        z[0] <= angle - 32'b11000000_00000000_00000000_00000000;
       end
     endcase
+    a[0] <= angle;
   end
 
 
@@ -112,12 +118,14 @@ module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
       x[i+1] <= 0;
       y[i+1] <= 0;
       z[i+1] <= 0;
+      a[i+1] <= 0;
     end else
     begin
       // add/subtract shifted data
       x[i+1] <= z_sign ? x[i] + y_shr : x[i] - y_shr;
       y[i+1] <= z_sign ? y[i] - x_shr : y[i] + x_shr;
       z[i+1] <= z_sign ? z[i] + atan_table[i] : z[i] - atan_table[i];
+      a[i+1] <= a[i];
     end
   end
   endgenerate
@@ -125,6 +133,7 @@ module CORDIC(nreset, clock, cosine, sine, x_start, y_start, angle);
   // assign output
   assign cosine = x[width-1];
   assign sine = y[width-1];
+  assign angleout = a[width-1];
 
 endmodule
 
